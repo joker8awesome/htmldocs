@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HTML Docs — 데카르트의 문서 허브</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/subsets/Paperlogy-dynamic-subset.css">
+<style>
+  :root{
+    --bg:#0A1428; --panel:#101D38; --panel2:#152547;
+    --line:#233a66; --ink:#E8EEF9; --dim:#8DA2C6; --faint:#5A6E93;
+    --accent:#F5B841; --accent-ink:#241a04;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);
+    font-family:"Paperlogy",-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    line-height:1.6;min-height:100vh}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:960px;margin:0 auto;padding:48px 20px 80px}
+
+  header{margin-bottom:36px}
+  .eyebrow{font-size:12px;letter-spacing:.22em;color:var(--accent);font-weight:600;margin-bottom:10px}
+  h1{font-size:clamp(26px,5vw,40px);font-weight:800;line-height:1.2}
+  h1 em{font-style:normal;color:var(--accent)}
+  .sub{color:var(--dim);margin-top:10px;font-size:15px;max-width:60ch}
+  .count{display:inline-block;margin-left:8px;font-size:13px;color:var(--faint)}
+
+  .controls{display:flex;gap:10px;flex-wrap:wrap;margin:28px 0 8px}
+  .search{flex:1;min-width:220px;background:var(--panel);border:1px solid var(--line);
+    border-radius:10px;padding:10px 14px;color:var(--ink);font:inherit;font-size:14px}
+  .search::placeholder{color:var(--faint)}
+  .search:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 26px}
+  .chip{background:var(--panel);border:1px solid var(--line);border-radius:999px;
+    padding:6px 14px;font-size:13px;color:var(--dim);cursor:pointer;font-family:inherit}
+  .chip:hover{border-color:var(--accent);color:var(--ink)}
+  .chip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+  .chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:18px 18px 16px;display:flex;flex-direction:column;gap:8px;
+    transition:transform .15s ease,border-color .15s ease}
+  .card:hover{transform:translateY(-2px);border-color:var(--accent)}
+  .card .cat{font-size:11px;letter-spacing:.14em;color:var(--accent);font-weight:700}
+  .card h2{font-size:17px;font-weight:700;line-height:1.35}
+  .card p{font-size:13.5px;color:var(--dim);flex:1}
+  .card .meta{display:flex;justify-content:space-between;font-size:12px;color:var(--faint);
+    border-top:1px solid var(--line);padding-top:10px;margin-top:4px}
+  .card .file{font-family:ui-monospace,Consolas,monospace}
+
+  .empty{color:var(--faint);padding:40px 0;text-align:center;grid-column:1/-1}
+  footer{margin-top:56px;color:var(--faint);font-size:13px;border-top:1px solid var(--line);padding-top:20px}
+  footer code{font-family:ui-monospace,Consolas,monospace;color:var(--dim);background:var(--panel);
+    padding:1px 6px;border-radius:5px}
+  @media (prefers-reduced-motion:reduce){.card{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">HTML DOCS</div>
+    <h1>마크다운 대신, <em>열어서 읽는</em> 문서<span class="count" id="count"></span></h1>
+    <p class="sub">주제별 정리를 자기완결형 HTML 파일로 축적하는 개인 문서 허브.
+    새 문서를 추가하려면 이 파일의 <b>DOCS 배열에 한 줄</b>만 추가하면 됩니다.</p>
+  </header>
+
+  <div class="controls">
+    <input class="search" id="q" type="search" placeholder="제목·설명·파일명 검색…" aria-label="문서 검색">
+  </div>
+  <div class="chips" id="chips" role="group" aria-label="카테고리 필터"></div>
+
+  <main class="grid" id="grid"></main>
+
+  <footer>
+    새 문서 추가: ① <code>docs/</code> 폴더에 .html 파일 커밋 → ② 이 파일의 <code>DOCS</code> 배열에 항목 1줄 추가 → ③ push.
+    카테고리는 자유롭게 새로 만들어도 필터에 자동 반영됩니다.
+  </footer>
+</div>
+
+<script>
+/* ============================================================
+   문서 매니페스트 — 새 문서는 여기 한 줄만 추가하세요.
+   { file, title, desc, cat, date }
+   file 은 docs/ 기준 상대경로입니다.
+   ============================================================ */
+const DOCS = [
+  {
+    file: "docs/example-consistent-hashing.html",
+    title: "예제 — 문서 템플릿 살펴보기",
+    desc: "TL;DR 박스, 접히는 섹션, 탭 코드 블록, 복사 버튼이 포함된 기본 문서 템플릿. 새 주제를 정리할 때 이 구조를 복제해서 시작.",
+    cat: "템플릿",
+    date: "2026-07-15"
+  }
+  // ↓ 새 문서를 여기에 추가
+];
+
+const grid  = document.getElementById("grid");
+const chips = document.getElementById("chips");
+const q     = document.getElementById("q");
+const count = document.getElementById("count");
+let activeCat = "전체";
+
+function cats(){ return ["전체", ...new Set(DOCS.map(d=>d.cat))]; }
+
+function renderChips(){
+  chips.innerHTML = "";
+  cats().forEach(c=>{
+    const b=document.createElement("button");
+    b.className="chip"+(c===activeCat?" on":"");
+    b.textContent = c==="전체" ? `전체 ${DOCS.length}` : `${c} ${DOCS.filter(d=>d.cat===c).length}`;
+    b.onclick=()=>{activeCat=c;render();};
+    chips.appendChild(b);
+  });
+}
+
+function render(){
+  renderChips();
+  const kw=q.value.trim().toLowerCase();
+  const list=DOCS.filter(d=>
+    (activeCat==="전체"||d.cat===activeCat) &&
+    (!kw || (d.title+d.desc+d.file).toLowerCase().includes(kw))
+  ).sort((a,b)=>b.date.localeCompare(a.date));
+
+  count.textContent=`· ${DOCS.length}개 문서`;
+  grid.innerHTML="";
+  if(!list.length){grid.innerHTML='<div class="empty">조건에 맞는 문서가 없습니다. 검색어나 필터를 바꿔 보세요.</div>';return;}
+
+  list.forEach(d=>{
+    const a=document.createElement("a");
+    a.className="card"; a.href=d.file;
+    a.innerHTML=`
+      <div class="cat">${d.cat}</div>
+      <h2>${d.title}</h2>
+      <p>${d.desc}</p>
+      <div class="meta"><span class="file">${d.file.split("/").pop()}</span><span>${d.date}</span></div>`;
+    grid.appendChild(a);
+  });
+}
+
+q.addEventListener("input",render);
+render();
+</script>
+</body>
+</html>
